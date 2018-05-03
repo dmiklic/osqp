@@ -135,6 +135,7 @@ if(NOT DEFINED EMBEDDED)
         src/proj.c
         src/scaling.c
         src/util.c
+        src/block.c
     )
 
     set(
@@ -153,6 +154,7 @@ if(NOT DEFINED EMBEDDED)
         include/proj.h
         include/scaling.h
         include/util.h
+        include/block.h
     )
 else()
     # If embedded is enabled, do not use cs, polish
