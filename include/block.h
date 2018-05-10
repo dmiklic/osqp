@@ -56,7 +56,7 @@ csc* csc_diag(c_int         n,
  *         T is allocated using csc_spalloc and must be
  *         freed using csc_spfree
  */
-csc* csc_tpose(csc* M);
+csc* csc_tpose(const csc* M);
 
 /**
  * Stack Compressed-Column-Sparse matrices horizontally.
@@ -120,7 +120,7 @@ csc* csc_block_diag(c_int count, ...);
  * @param B Pointer to the second operand
  * @return Pointer to the newly crated matrix.
  */
-csc* csc_kron(csc *A, csc *B);
+csc* csc_kron(const csc *A, const csc *B);
 
 //void csc_set(c_int i, c_int j, c_float val);
 //c_float csc_get(c_int i, c_int j);

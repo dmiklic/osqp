@@ -68,7 +68,7 @@ csc* csc_diag(c_int n, const c_float *elems)
 // Alorithm described here:
 // https://stackoverflow.com/questions/16721863/how-does-matlab-transpose-a-sparse-matrix
 // TODO: Remove temp
-csc* csc_tpose(csc* M)
+csc* csc_tpose(const csc* M)
 {
   csc* T = csc_spalloc(M->n, M->m, M->nzmax, 1, 0);
   c_int* temp = c_calloc(M->m+1, sizeof(c_int));
@@ -273,7 +273,7 @@ csc* csc_block_diag(c_int count, ...)
   return B;
 }
 
-csc* csc_kron(csc *A, csc *B)
+csc* csc_kron(const csc *A, const csc *B)
 {
   csc* K = csc_spalloc(A->m * B->m,A->n * B->n, A->nzmax * B->nzmax, 1, 0);
 
