@@ -22,6 +22,23 @@ csc* csc_zeros(c_int m, c_int n)
   return Z;
 }
 
+csc* csc_ones(c_int m, c_int n)
+{
+  csc *O = csc_spalloc(m, n, m*n, 1, 0);
+  O->p[0] = 0;
+  int i = 0, j = 0;
+  for (j = 0; j < n; j++)
+  {
+    for (i = 0; i < m; i++)
+    {
+      O->x[j*m+i] = 1.00000000000000000000;
+      O->i[j*m+i] = i;
+      O->p[j+1] = O->p[j]+m; 
+    }
+  }
+  return O;
+}
+
 csc* csc_eye(c_int n)
 {
   c_int i = 0;

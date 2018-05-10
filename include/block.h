@@ -19,6 +19,16 @@
 csc* csc_zeros(c_int m, c_int n);
 
 /**
+ * Create Compressed-Column-Sparse matrix of ones
+ * Calls csc_spalloc to allocate memory, the caller is 
+ * responsible for freeing memory with csc_spfree.
+ * @param  m     Number of rows
+ * @param  n     Number of columns
+ * @return       New matrix pointer
+ */
+csc* csc_ones(c_int m, c_int n);
+
+/**
  * Create Compressed-Column-Sparse square identity matrix
  * Calls csc_spalloc to allocate memory, the caller is 
  * responsible for freeing memory with csc_spfree.
