@@ -105,6 +105,11 @@ csc* csc_diag(c_int m, c_int n, const c_float *elems, c_int k)
 // TODO: Remove temp
 csc* csc_tpose(const csc* M)
 {
+  // Special handling of zero matrices
+  if (M->nzmax == 0)
+  {
+    return csc_zeros(M->n, M->m);
+  }
   csc* T = csc_spalloc(M->n, M->m, M->nzmax, 1, 0);
   c_int* temp = c_calloc(M->m+1, sizeof(c_int));
   int i, j;
