@@ -115,8 +115,8 @@ csc* csc_block_diag(c_int count, ...);
  * Kronecker product of Compressed-Column-Sparse matrices.
  * Calls csc_spalloc to allocate memory, the caller is
  * responsible for freeing memory with csc_spfree.
- * @param A Pointer to the first operand
- * @param B Pointer to the second operand
+ * @param  A Pointer to the first operand
+ * @param  B Pointer to the second operand
  * @return Pointer to the newly crated matrix.
  */
 csc* csc_kron(const csc *A, const csc *B);
@@ -125,4 +125,20 @@ csc* csc_kron(const csc *A, const csc *B);
 //c_float csc_get(c_int i, c_int j);
 void print_csc_matrix_as_dns(csc* M, const char *name);
 
+/*
+ * Add Compressed-Column-Sparse matrices.
+ * Computes C = alpha * A + beta * B
+ * Allocates memory for the result. The caller is
+ * responsible for freeing the memory by calling
+ * csc_spfree.
+ * Does not perform "compression", i.e. if the addition
+ * produces a zero element, it is not removed from the 
+ * sparse representation(?).
+ * @param  A Pointer to the first operand
+ * @param  B Pointer to the second operand
+ * @param  alpha
+ * @param  beta
+ * @return The result C = alpha * A + beta * B
+ */
+csc* csc_add(const csc *A, const csc *B, double alpha, double beta);
 #endif

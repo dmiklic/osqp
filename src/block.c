@@ -9,6 +9,8 @@
 #include "block.h"
 #include "cs.h"
 
+#include <limits.h>
+
 csc* csc_zeros(c_int m, c_int n)
 {
   csc *Z = c_calloc(1, sizeof(csc));
@@ -340,12 +342,111 @@ csc* csc_kron(const csc *A, const csc *B)
   return K;
 }
 
-//void csc_set(c_int i, c_int j, c_float val);
-//void csc_get(c_int i, c_int j);
-
 void print_csc_matrix_as_dns(csc* M, const char* name)
 {
   c_float* Mdns = csc_to_dns(M);
   print_dns_matrix(Mdns, M->m, M->n, name);
   c_free(Mdns);
 }
+
+//void csc_set(c_int i, c_int j, c_float val);
+//void csc_get(c_int i, c_int j);
+
+// All code below taken directly from:
+// http://people.sc.fsu.edu/~jburkardt/c_src/csparse/csparse.html
+
+#define CS_OVERFLOW(n,size) (n > INT_MAX / (int) size)
+#define CS_MAX(a,b) (((a) > (b)) ? (a) : (b))
+
+/* free workspace and return a sparse matrix result */
+csc *cs_done (csc *C, void *w, void *x, c_int ok)
+{
+    c_free (w) ;			/* free workspace */
+    c_free (x) ;
+    return (ok ? C : csc_spfree (C)) ;	/* return result if OK, else free it */
+}
+
+/* wrapper for realloc */
+void *cs_realloc (void *p, c_int n, size_t size, c_int *ok)
+{
+    void *p2 ;
+    *ok = !CS_OVERFLOW (n,size) ;	    /* guard against int overflow */
+    if (!(*ok)) return (p) ;		    /* p unchanged if n too large */
+    p2 = realloc (p, CS_MAX (n,1) * size) ; /* realloc the block */
+    *ok = (p2 != NULL) ;
+    return ((*ok) ? p2 : p) ;		    /* return original p if failure */
+}
+
+/* change the max # of entries sparse matrix */
+c_int cs_sprealloc (csc *A, c_int nzmax)
+{
+    c_int ok, oki, okj = 1, okx = 1 ;
+    if (!A) return (0) ;
+    nzmax = (nzmax <= 0) ? (A->p [A->n]) : nzmax ;
+    A->i = cs_realloc (A->i, nzmax, sizeof (c_int), &oki) ;
+    if (A->nz >= 0) A->p = cs_realloc (A->p, nzmax, sizeof (c_int), &okj) ;
+    if (A->x) A->x = cs_realloc (A->x, nzmax, sizeof (c_float), &okx) ;
+    ok = (oki && okj && okx) ;
+    if (ok) A->nzmax = nzmax ;
+    return (ok) ;
+}
+
+/* x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse */
+c_int cs_scatter (const csc *A, c_int j, c_float beta, c_int *w, c_float *x, c_int mark,
+                  csc *C, c_int nz)
+{
+    c_int i, p, *Ap, *Ai, *Ci ;
+    c_float *Ax ;
+    if (!A || !w || !C) return (-1) ;		/* ensure inputs are valid */
+    Ap = A->p ; Ai = A->i ; Ax = A->x ; Ci = C->i ;
+    for (p = Ap [j] ; p < Ap [j+1] ; p++)
+    {
+	i = Ai [p] ;				/* A(i,j) is nonzero */
+	if (w [i] < mark)
+	{
+	    w [i] = mark ;			/* i is new entry in column j */
+	    Ci [nz++] = i ;			/* add i to pattern of C(:,j) */
+	    if (x) x [i] = beta * Ax [p] ;	/* x(i) = beta*A(i,j) */
+	}
+	else if (x) x [i] += beta * Ax [p] ;	/* i exists in C(:,j) already */
+    }
+    return (nz) ;
+}
+
+csc *csc_add ( const csc *A, const csc *B, double alpha, double beta )
+/*
+  Purpose:
+
+    CS_ADD computes C = alpha*A + beta*B for sparse A and B.
+
+  Reference:
+
+    Timothy Davis,
+    Direct Methods for Sparse Linear Systems,
+    SIAM, Philadelphia, 2006.
+*/
+{
+    c_int p, j, nz = 0, anz, *Cp, *Ci, *Bp, m, n, bnz, *w, values ;
+    c_float *x, *Bx, *Cx ;
+    csc *C ;
+    if (!A || !B) return (NULL) ;	/* check inputs */
+    m = A->m ; anz = A->p [A->n] ;
+    n = B->n ; Bp = B->p ; Bx = B->x ; bnz = Bp [n] ;
+    w = c_calloc (m, sizeof (c_int)) ;
+    values = (A->x != NULL) && (Bx != NULL) ;
+    x = values ? c_malloc (m * sizeof (c_float)) : NULL ;
+    C = csc_spalloc (m, n, anz + bnz, values, 0) ;
+    if (!C || !w || (values && !x)) return (cs_done (C, w, x, 0)) ;
+    Cp = C->p ; Ci = C->i ; Cx = C->x ;
+    for (j = 0 ; j < n ; j++)
+    {
+	Cp [j] = nz ;			/* column j of C starts here */
+	nz = cs_scatter (A, j, alpha, w, x, j+1, C, nz) ;   /* alpha*A(:,j)*/
+	nz = cs_scatter (B, j, beta, w, x, j+1, C, nz) ;    /* beta*B(:,j) */
+	if (values) for (p = Cp [j] ; p < nz ; p++) Cx [p] = x [Ci [p]] ;
+    }
+    Cp [n] = nz ;			/* finalize the last column of C */
+    cs_sprealloc (C, 0) ;		/* remove extra space from C */
+    return (cs_done (C, w, x, 1)) ;	/* success; free workspace, return C */
+}
+
