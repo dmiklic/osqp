@@ -39,8 +39,43 @@ csc* csc_ones(c_int m, c_int n)
   return O;
 }
 
-csc* csc_eye(c_int n)
+csc* csc_eye(c_int m, c_int n, c_int k)
 {
+  c_int nnz = 0, i = 0, j = 0;
+  csc *I = OSQP_NULL;
+  if (k >= 0)
+  {
+    nnz = c_min(m, n-k);
+    I = csc_spalloc(m, n, nnz, 1, 0);
+    for (i = 0; i < nnz; i++)
+    {
+      I->i[i] = i;
+      I->x[i] = 1.0;
+    }
+    for (j = 0; j <= k; j++)
+    {
+      I->p[j] = 0;
+    }
+    for (j = k+1; j < n+1; j++)
+    {
+      I->p[j] = c_min(j - k, nnz);
+    }
+  }
+  else if (k < 0)
+  {
+    nnz = c_min(m+k, n);
+    I = csc_spalloc(m, n, nnz, 1, 0);
+    for (i = 0; i < nnz; i++)
+    {
+      I->i[i] = i - k;
+      I->x[i] = 1.0;
+    }
+    for (j = 0; j < n+1; j++)
+    {
+      I->p[j] = c_min(j, nnz);
+    }
+  }
+  /*
   c_int i = 0;
   csc *I = csc_spalloc(n, n, n, 1, 0);
   for (i = 0; i < n; i++)
@@ -50,15 +85,15 @@ csc* csc_eye(c_int n)
     I->p[i] = i;
   }
   I->p[n] = n;
-
+  */
   return I;
 }
 
-csc* csc_diag(c_int n, const c_float *elems)
+csc* csc_diag(c_int m, c_int n, const c_float *elems, c_int k)
 {
   c_int i = 0;
-  csc *D = csc_eye(n);
-  for (i = 0; i < n; i++)
+  csc *D = csc_eye(m, n, k);
+  for (i = 0; i < D->nzmax; i++)
   {
     D->x[i] = elems[i];
   }

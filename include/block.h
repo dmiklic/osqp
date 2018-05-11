@@ -35,7 +35,7 @@ csc* csc_ones(c_int m, c_int n);
  * @param  n     Matrix size
  * @return       New matrix pointer
  */
-csc* csc_eye(c_int n);
+csc* csc_eye(c_int m, c_int n, c_int k);
 
 /**
  * Create Compressed-Column-Sparse square diagonal matrix
@@ -46,8 +46,7 @@ csc* csc_eye(c_int n);
  * @param  elems Elements on the diagonal
  * @return       New matrix pointer
  */
-csc* csc_diag(c_int         n,
-              const c_float *elems);
+csc* csc_diag(c_int m, c_int n, const c_float *elems, c_int k);
 
 /**
  * Transpose a Compressed-Column-Sparse matrix.
