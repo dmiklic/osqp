@@ -136,6 +136,7 @@ if(NOT DEFINED EMBEDDED)
         src/scaling.c
         src/util.c
         src/block.c
+        src/mpc.c
     )
 
     set(
@@ -155,6 +156,7 @@ if(NOT DEFINED EMBEDDED)
         include/scaling.h
         include/util.h
         include/block.h
+        include/mpc.h
     )
 else()
     # If embedded is enabled, do not use cs, polish
@@ -311,6 +313,10 @@ if (NOT PYTHON AND NOT MATLAB)
     # Create demo executable (linked to static library)
     add_executable (osqp_demo ${PROJECT_SOURCE_DIR}/examples/osqp_demo.c)
     target_link_libraries (osqp_demo osqpstatic)
+
+    # Create MPC demo executable
+    add_executable(mpc_double_integrator ${PROJECT_SOURCE_DIR}/examples/mpc_double_integrator.c)
+    target_link_libraries (mpc_double_integrator osqpstatic)
 
 endif (NOT PYTHON AND NOT MATLAB)
 
