@@ -141,4 +141,29 @@ void print_csc_matrix_as_dns(csc* M, const char *name);
  * @return The result C = alpha * A + beta * B
  */
 csc* csc_add(const csc *A, const csc *B, double alpha, double beta);
+
+/*
+ * Create a vector of zeros.
+ * Allocates memory with MALLOC.
+ */
+c_float* vec_zeros(c_int n);
+
+/*
+ * Create a vector of ones.
+ * Allocates memory with MALLOC.
+ */
+c_float* vec_ones(c_int n);
+
+/*
+ * Concatenate two vectors.
+ * Allocates memory with MALLOC. The caller is responsable
+ * for freeing the memory.
+ */
+c_float* vec_cat(c_int n1, const c_float* v1, c_int n2, const c_float* v2);
+
+/*
+ * Repeat a vector count times.
+ */
+c_float* vec_rep(c_int n, const c_float* v, c_int count);
+
 #endif

@@ -349,6 +349,41 @@ void print_csc_matrix_as_dns(csc* M, const char* name)
   c_free(Mdns);
 }
 
+c_float* vec_zeros(c_int n)
+{
+  return c_calloc(n, sizeof(c_float));
+}
+
+c_float* vec_ones(c_int n)
+{
+  c_float* vec = c_malloc(n * sizeof(c_float));
+  c_int i = 0;
+  for (i = 0; i < n; i++)
+  {
+    vec[i] = 1.0;
+  }
+  return vec;
+}
+
+c_float* vec_cat(c_int n1, const c_float* v1, c_int n2, const c_float* v2)
+{
+  c_float* vec = c_malloc((n1+n2) * sizeof(c_float));
+  memcpy(vec, v1, n1*sizeof(c_float));
+  memcpy(vec+n1, v2, n2*sizeof(c_float));
+  return vec;
+}
+
+c_float* vec_rep(c_int n, const c_float* v, c_int count)
+{
+  c_float* vec = c_malloc(n*count*sizeof(c_float));
+  int i = 0;
+  for (i = 0; i < count; i++)
+  {
+    memcpy(vec+i*n, v, n*sizeof(c_float));
+  }
+  return vec;
+}
+
 //void csc_set(c_int i, c_int j, c_float val);
 //void csc_get(c_int i, c_int j);
 
@@ -449,4 +484,5 @@ csc *csc_add ( const csc *A, const csc *B, double alpha, double beta )
     cs_sprealloc (C, 0) ;		/* remove extra space from C */
     return (cs_done (C, w, x, 1)) ;	/* success; free workspace, return C */
 }
+
 
