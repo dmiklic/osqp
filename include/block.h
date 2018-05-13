@@ -3,6 +3,10 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+# ifdef __cplusplus
+extern "C" {
+# endif // ifdef __cplusplus
+
 #include "types.h"
 #include "cs.h"
 
@@ -165,5 +169,9 @@ c_float* vec_cat(c_int n1, const c_float* v1, c_int n2, const c_float* v2);
  * Repeat a vector count times.
  */
 c_float* vec_rep(c_int n, const c_float* v, c_int count);
+
+# ifdef __cplusplus
+}
+# endif // ifdef __cplusplus
 
 #endif
