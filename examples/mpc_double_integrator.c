@@ -5,8 +5,6 @@
 #include "block.h"
 #include "mpc.h"
 
-
-
 int main(int argc, char **argv) {
 
   c_int nx = 2;
@@ -58,7 +56,7 @@ int main(int argc, char **argv) {
   // Cast as QP problem
   csc *P = mpc_to_osqp_P(Q, QN, R, N);
   //print_csc_matrix_as_dns(P, "P");
-  c_float *q = mpc_to_osqp_q(Q, QN, xr, nu, N);
+  c_float *q = mpc_to_osqp_q_const_xr(Q, QN, xr, nu, N);
   //print_dns_matrix(q, N*nx + nx + N*nu, 1, "q");
   csc *A = mpc_to_osqp_A(Ad, Bd, N);
   //print_csc_matrix_as_dns(A, "A");
@@ -84,10 +82,7 @@ int main(int argc, char **argv) {
   osqp_set_default_settings(settings);
   work = osqp_setup(data, settings);
 
-  osqp_solve(work);
-  print_dns_matrix(work->solution->x + (N+1)*nx, 1, N*nu, "u*");
-  // Clean up
-  osqp_cleanup(work);
+  // Clean up temporary variables
   
   // OSQP variables
   c_free(u);
@@ -104,6 +99,12 @@ int main(int argc, char **argv) {
   // System matrices
   c_free(Bd);
   c_free(Ad);
+  
+  osqp_solve(work);
+  print_dns_matrix(work->solution->x + (N+1)*nx, 1, N*nu, "u*");
+
+  // Clean up
+  osqp_cleanup(work);
   
   return 0;
 }

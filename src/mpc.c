@@ -2,6 +2,8 @@
 #include "block.h"
 #include "lin_alg.h"
 
+// TODO: Imlement const correctness!
+
 /* A convenience function, the implementation is
  * useful only in this context, as it does not check
  * for zero elements.
@@ -40,7 +42,7 @@ csc* mpc_to_osqp_P(csc* Q, csc* QN, csc* R, c_int N)
   return P;
 }
 
-c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
+c_float* mpc_to_osqp_q_const_xr(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
 {
   c_float *q = OSQP_NULL;
   c_float *y1 = c_malloc(Q->m * sizeof(c_float));
@@ -66,6 +68,33 @@ c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
   csc_spfree(Z);
   csc_spfree(minus_QN_dot_xr);
   csc_spfree(qQ);
+  
+  return q;
+}
+
+c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
+{
+  c_int nx = Q->m;
+  c_float *q = c_calloc((N+1) * nx + N * nu, sizeof(c_float));
+
+  csc *I = csc_eye(N, N, 0);
+  mat_mult_scalar(Q, -1.0);
+  csc* repQ = csc_kron(I, Q);
+
+  // (-1)*(-Q) = Q
+  // We should do this immediately, because the user
+  // may pass Q as QN
+  mat_mult_scalar(Q, -1.0);
+  csc_spfree(I);
+  
+  mat_vec(repQ, xr, q, 0);
+
+  csc_spfree(repQ);
+
+  mat_mult_scalar(QN, -1.0);
+  mat_vec(QN, &xr[N*nx], &q[N*nx], 0);
+
+  mat_mult_scalar(QN, -1.0);
   
   return q;
 }
