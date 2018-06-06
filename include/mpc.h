@@ -36,6 +36,17 @@ c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N);
  */
 csc* mpc_to_osqp_A(csc* Ad, csc* Bd, c_int N);
 
+/*
+ * Creates the OSQP constraint matrix A for a LPV-A-MPC problem, i.e.,
+ * an LPV-MPC problem where the state transition matrix Ad changes at
+ * every prediction step, while the input matrix Bd remains constant
+ * over the prediction horizon.
+ *
+ * The array Ad[] must contain exactly N csc* objects.
+ * It is assumed that Ad[k]->nzmax is the same for all k \in [0,N)
+ */
+csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, c_int N);
+
 /* 
  * Creates the OSQP bound vector from state and input bounds.
  * Provide -x0, x_min, xN_min and u_min for lower bound and

@@ -144,6 +144,68 @@ csc* mpc_to_osqp_A(csc* Ad, csc* Bd, c_int N)
   return A;
 }
 
+csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, c_int N)
+{
+  csc* A = OSQP_NULL;
+  c_int nx = Ad[0]->n;
+  c_int nu = Bd->n;
+  c_int k = 0, j = 0;
+
+  csc* IN = csc_eye(N+1, N+1, 0);
+  csc* minus_Inx = csc_eye(nx, nx, 0);
+  mat_mult_scalar(minus_Inx, -1);
+  csc* Ax_I = csc_kron(IN, minus_Inx);
+  csc_spfree(IN);
+  csc_spfree(minus_Inx);
+
+  c_int nzmax = Ad[0]->nzmax;
+  csc* Ax_Ad = csc_spalloc((N+1)*nx, (N+1)*nx, N*nzmax, 1, 0);
+  for (k = 0; k < N; k++)
+  {
+    for (j = 0; j < nzmax; j++)
+    {
+      Ax_Ad->x[k*nzmax+j] = Ad[k]->x[j];
+      Ax_Ad->i[k*nzmax+j] = Ad[k]->i[j] + (k+1)*nx;
+    }
+    for (j = 0; j <= nx; j++)
+    {
+      Ax_Ad->p[k*nx+j] = Ad[k]->p[j] + k*nzmax;
+    }
+  }
+  // Last nx columns of Ax_Ad are zeros
+  for (j = N*nx; j <= (N+1)*nx; j++)
+  {
+    Ax_Ad->p[j] = N*nzmax;
+  }
+
+  csc* Ax = csc_add(Ax_I, Ax_Ad, 1, 1);
+
+  csc_spfree(Ax_I);
+  csc_spfree(Ax_Ad);
+
+  csc* Z = csc_zeros(1,N);
+  IN = csc_eye(N, N, 0);
+  csc* Z_IN = csc_vstack(2, Z, IN);
+  csc* Bu = csc_kron(Z_IN, Bd);
+
+  csc_spfree(Z);
+  csc_spfree(IN);
+  csc_spfree(Z_IN);
+
+  csc *Aeq = csc_hstack(2, Ax, Bu);
+
+  csc_spfree(Ax);
+  csc_spfree(Bu);
+
+  csc *Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
+  A = csc_vstack(2, Aeq, Aineq);
+
+  csc_spfree(Aeq);
+  csc_spfree(Aineq);
+
+  return A;
+}
+
 c_float* mpc_to_osqp_bound(c_float* minus_x0, c_float* x_bound, c_float* xN_bound,
                            c_float* u_bound, c_int nx, c_int nu, c_int N)
 {

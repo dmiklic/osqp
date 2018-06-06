@@ -10,6 +10,9 @@ int main(int argc, char **argv) {
   c_int nx = 2;
   c_int nu = 1;
 
+  // Prediction horizon
+  c_int N = 6;
+
   // System model
 
   c_int Ad_nnz = 3;
@@ -18,6 +21,13 @@ int main(int argc, char **argv) {
   c_int Ad_p[3] = { 0, 1, 3 };
   csc *Ad = csc_matrix(nx, nx, Ad_nnz, Ad_x, Ad_i, Ad_p);
 
+  csc **Ad_lpv = (csc **) c_malloc(N * sizeof(csc*));
+  int k = 0;
+  for (k = 0; k < N; k++)
+  {
+    Ad_lpv[k] = copy_csc_mat(Ad);
+  }
+
   c_int Bd_nnz = 1;
   c_float Bd_x[1] = { 1.0 };
   c_int Bd_i[1] = { 1 };
@@ -25,7 +35,7 @@ int main(int argc, char **argv) {
   csc *Bd = csc_matrix(nx, nu, Bd_nnz, Bd_x, Bd_i, Bd_p);
 
   // Initial conditions and setpoints
-  
+
   c_float x0[2] = { 3.0, -2.0 };
   c_float minus_x0[2] = { -3.0, 2.0 };
   c_float xr[2] = { 0.0, 0.0 };
@@ -49,16 +59,13 @@ int main(int argc, char **argv) {
   c_float x_max[2] = { 10.0, 10.0 };
   c_float xN_max[2] = { HUGE_VAL, HUGE_VAL };
   c_float u_max[1] = { 1.0 };
-  
-  // Prediction horizon
-  c_int N = 6;
 
   // Cast as QP problem
   csc *P = mpc_to_osqp_P(Q, QN, R, N);
   //print_csc_matrix_as_dns(P, "P");
   c_float *q = mpc_to_osqp_q_const_xr(Q, QN, xr, nu, N);
   //print_dns_matrix(q, N*nx + nx + N*nu, 1, "q");
-  csc *A = mpc_to_osqp_A(Ad, Bd, N);
+  csc *A = lpv_a_mpc_to_osqp_A(Ad_lpv, Bd, N);
   //print_csc_matrix_as_dns(A, "A");
   c_float *l = mpc_to_osqp_bound(minus_x0, x_min, xN_min, u_min, nx, nu, N);
   //print_dns_matrix(l, 1, (N+1)*nx + (N+1)*nx + N*nu, "l");
@@ -83,28 +90,37 @@ int main(int argc, char **argv) {
   work = osqp_setup(data, settings);
 
   // Clean up temporary variables
-  
+
+  // OSQP settings and workspace
+  c_free(data);
+  c_free(settings);
+
   // OSQP variables
   c_free(u);
   c_free(l);
   csc_spfree(A);
   c_free(q);
   csc_spfree(P);
-  
+
   // Cost matrices
   csc_spfree(R);
   c_free(QN);
   csc_spfree(Q);
 
   // System matrices
+  for (k = 0; k < N; k++)
+  {
+    csc_spfree(Ad_lpv[k]);
+  }
+  c_free(Ad_lpv);
   c_free(Bd);
   c_free(Ad);
-  
+
   osqp_solve(work);
   print_dns_matrix(work->solution->x + (N+1)*nx, 1, N*nu, "u*");
 
   // Clean up
   osqp_cleanup(work);
-  
+
   return 0;
 }
