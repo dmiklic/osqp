@@ -26,7 +26,9 @@ csc* dns_to_csc(c_int m, c_int n, c_float *x)
   M->x = x;
 }
 
-csc* mpc_to_osqp_P(csc* Q, csc* QN, csc* R, c_int N)
+csc* mpc_to_osqp_P(const csc* Q,
+                   const csc* QN,
+                   const csc* R, c_int N)
 {
   csc* P = OSQP_NULL;
 
@@ -42,7 +44,10 @@ csc* mpc_to_osqp_P(csc* Q, csc* QN, csc* R, c_int N)
   return P;
 }
 
-c_float* mpc_to_osqp_q_const_xr(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
+c_float* mpc_to_osqp_q_const_xr(const csc* Q,
+                                const csc* QN,
+                                const c_float* xr,
+                                c_int nu, c_int N)
 {
   c_float *q = OSQP_NULL;
   c_float *y1 = c_malloc(Q->m * sizeof(c_float));
@@ -72,7 +77,10 @@ c_float* mpc_to_osqp_q_const_xr(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
   return q;
 }
 
-c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
+c_float* mpc_to_osqp_q(csc* Q,
+                       csc* QN,
+                       const c_float* xr,
+                       c_int nu, c_int N)
 {
   c_int nx = Q->m;
   c_float *q = c_calloc((N+1) * nx + N * nu, sizeof(c_float));
@@ -82,7 +90,7 @@ c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
   csc* repQ = csc_kron(I, Q);
 
   // (-1)*(-Q) = Q
-  // We should do this immediately, because the user
+  // We do this immediately, because the user
   // may pass Q as QN
   mat_mult_scalar(Q, -1.0);
   csc_spfree(I);
@@ -99,7 +107,9 @@ c_float* mpc_to_osqp_q(csc* Q, csc* QN, c_float* xr, c_int nu, c_int N)
   return q;
 }
 
-csc* mpc_to_osqp_A(csc* Ad, csc* Bd, c_int N)
+csc* mpc_to_osqp_A(const csc* Ad,
+                   const csc* Bd,
+                   c_int N)
 {
   csc* A = OSQP_NULL;
   c_int nx = Ad->n;
@@ -206,8 +216,11 @@ csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, c_int N)
   return A;
 }
 
-c_float* mpc_to_osqp_bound(c_float* minus_x0, c_float* x_bound, c_float* xN_bound,
-                           c_float* u_bound, c_int nx, c_int nu, c_int N)
+c_float* mpc_to_osqp_bound(const c_float* minus_x0,
+                           const c_float* x_bound,
+                           const c_float* xN_bound,
+                           const c_float* u_bound,
+                           c_int nx, c_int nu, c_int N)
 {
   c_float* vec_z = vec_zeros(N*nx);
   c_float* beq = vec_cat(nx, minus_x0, N*nx, vec_z);
