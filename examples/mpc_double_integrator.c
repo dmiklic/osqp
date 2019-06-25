@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
   //print_csc_matrix_as_dns(P, "P");
   c_float *q = mpc_to_osqp_q_const_xr(Q, QN, xr, nu, N);
   //print_dns_matrix(q, N*nx + nx + N*nu, 1, "q");
-  csc *A = lpv_a_mpc_to_osqp_A(Ad_lpv, Bd, N);
+  csc *A = lpv_a_mpc_to_osqp_A(Ad_lpv, Bd, OSQP_NULL, N);
   //print_csc_matrix_as_dns(A, "A");
   c_float *l = mpc_to_osqp_bound(minus_x0, x_min, xN_min, u_min, nx, nu, N);
   //print_dns_matrix(l, 1, (N+1)*nx + (N+1)*nx + N*nu, "l");

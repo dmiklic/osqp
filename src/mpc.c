@@ -154,7 +154,7 @@ csc* mpc_to_osqp_A(const csc* Ad,
   return A;
 }
 
-csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, c_int N)
+csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *Uineq[], c_int N)
 {
   csc* A = OSQP_NULL;
   c_int nx = Ad[0]->n;
@@ -207,7 +207,17 @@ csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, c_int N)
   csc_spfree(Ax);
   csc_spfree(Bu);
 
-  csc *Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
+  csc *Aineq = OSQP_NULL;
+  if (Uineq == OSQP_NULL)
+  {
+    // No additional input constraints.
+    Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
+  }
+  else
+  {
+    // TODO: Include Uineq into Aineq!!!
+    Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
+  }
   A = csc_vstack(2, Aeq, Aineq);
 
   csc_spfree(Aeq);
