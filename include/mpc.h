@@ -56,11 +56,11 @@ csc* mpc_to_osqp_A(const csc* Ad,
  * The array Ad[] must contain exactly N csc* objects.
  * It is assumed that Ad[k]->nzmax is the same for all k \in [0,N)
  *
- * Uineq is an array of matrices specifying additional inequality
+ * Ineq is an array of matrices specifying additional inequality
  * constraints that must be satisfied by system inputs at each
  * prediction step.
  */
-csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *Uineq[], c_int N);
+csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, const csc *Ineq[], c_int N);
 
 /* 
  * Creates the OSQP bound vector from state and input bounds.
@@ -71,7 +71,11 @@ c_float* mpc_to_osqp_bound(const c_float* minus_x0,
                            const c_float* x_bound,
                            const c_float* xN_bound,
                            const c_float* u_bound,
-                           c_int nx, c_int nu, c_int N);
+                           const c_float* other_bound,
+                           c_int nx,
+                           c_int nu,
+                           c_int N,
+                           c_int n_other);
 
 # ifdef __cplusplus
 }
