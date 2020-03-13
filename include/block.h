@@ -33,10 +33,13 @@ csc* csc_zeros(c_int m, c_int n);
 csc* csc_ones(c_int m, c_int n);
 
 /**
- * Create Compressed-Column-Sparse square identity matrix
+ * Create Compressed-Column-Sparse square identity matrix.
+ * API follows numpy.eye conventions.
  * Calls csc_spalloc to allocate memory, the caller is 
  * responsible for freeing memory with csc_spfree.
- * @param  n     Matrix size
+ * @param  m     Number of rows
+ * @param  n     Number of columns
+ * @param  k     Index of diagonal
  * @return       New matrix pointer
  */
 csc* csc_eye(c_int m, c_int n, c_int k);

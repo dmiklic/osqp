@@ -154,7 +154,7 @@ csc* mpc_to_osqp_A(const csc* Ad,
   return A;
 }
 
-csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *Uineq[], c_int N)
+csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *ExtraIneq, c_int N)
 {
   csc* A = OSQP_NULL;
   c_int nx = Ad[0]->n;
@@ -207,16 +207,12 @@ csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *Uineq[], c_int N)
   csc_spfree(Ax);
   csc_spfree(Bu);
 
-  csc *Aineq = OSQP_NULL;
-  if (Uineq == OSQP_NULL)
+  csc *Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
+  if (ExtraIneq != OSQP_NULL)
   {
-    // No additional input constraints.
-    Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
-  }
-  else
-  {
-    // TODO: Include Uineq into Aineq!!!
-    Aineq = csc_eye((N+1)*nx + N*nu, (N+1)*nx + N*nu, 0);
+    csc *tmp = Aineq;
+    Aineq = csc_vstack(2, Aineq, ExtraIneq);
+    csc_spfree(tmp);
   }
   A = csc_vstack(2, Aeq, Aineq);
 
@@ -230,7 +226,11 @@ c_float* mpc_to_osqp_bound(const c_float* minus_x0,
                            const c_float* x_bound,
                            const c_float* xN_bound,
                            const c_float* u_bound,
-                           c_int nx, c_int nu, c_int N)
+                           const c_float* extra_bound,
+                           c_int nx,
+                           c_int nu,
+                           c_int N,
+                           c_int n_extra)
 {
   c_float* vec_z = vec_zeros(N*nx);
   c_float* beq = vec_cat(nx, minus_x0, N*nx, vec_z);
@@ -238,18 +238,22 @@ c_float* mpc_to_osqp_bound(const c_float* minus_x0,
 
   c_float* bineq_x = vec_rep(nx, x_bound, N);
   c_float* bineq_x_xN = vec_cat(N*nx, bineq_x, nx, xN_bound);
-  c_float* bineq_u = vec_rep(nu, u_bound, N);
-  c_float* bineq = vec_cat((N+1)*nx, bineq_x_xN, N*nu, bineq_u);
+  c_float* bineq = vec_cat((N+1)*nx, bineq_x_xN, N*nu, u_bound);
 
-  c_free(bineq_u);
   c_free(bineq_x_xN);
   c_free(bineq_x);
 
   c_float* bound = vec_cat((N+1)*nx, beq, (N+1)*nx+N*nu, bineq);
 
+  if (extra_bound != OSQP_NULL)
+  {
+    c_float* tmp = bound;
+    bound = vec_cat(2*(N+1)*nx+N*nu, bound, n_extra, extra_bound);
+    c_free(tmp);
+  }
   c_free(beq);
   c_free(bineq);
-  
+
   return bound;
 }
 

@@ -8,6 +8,7 @@
 
 #include "block.h"
 #include "cs.h"
+#include "util.h"
 
 #include <limits.h>
 
@@ -77,17 +78,6 @@ csc* csc_eye(c_int m, c_int n, c_int k)
       I->p[j] = c_min(j, nnz);
     }
   }
-  /*
-  c_int i = 0;
-  csc *I = csc_spalloc(n, n, n, 1, 0);
-  for (i = 0; i < n; i++)
-  {
-    I->x[i] = 1.00000000000000000000;
-    I->i[i] = i;
-    I->p[i] = i;
-  }
-  I->p[n] = n;
-  */
   return I;
 }
 

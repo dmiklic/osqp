@@ -60,7 +60,7 @@ csc* mpc_to_osqp_A(const csc* Ad,
  * constraints that must be satisfied by system inputs at each
  * prediction step.
  */
-csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *Uineq[], c_int N);
+csc* lpv_a_mpc_to_osqp_A(csc *Ad[], const csc* Bd, csc *ExtraIneq, c_int N);
 
 /* 
  * Creates the OSQP bound vector from state and input bounds.
@@ -71,7 +71,11 @@ c_float* mpc_to_osqp_bound(const c_float* minus_x0,
                            const c_float* x_bound,
                            const c_float* xN_bound,
                            const c_float* u_bound,
-                           c_int nx, c_int nu, c_int N);
+                           const c_float* extra_bound,
+                           c_int nx,
+                           c_int nu,
+                           c_int N,
+                           c_int n_extra);
 
 # ifdef __cplusplus
 }
